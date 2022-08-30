@@ -4,11 +4,9 @@ import matplotlib.pyplot as plt
 from os.path import exists
 import xgboost as xgb
 from model import *
+from evaluation import *
 
-
-
-
-def mov_correlation(rebuild_model=False, verbose=False):
+def get_top_games(n=10, rebuild_model=False, verbose=False):
     if not exists('model.txt') or rebuild_model:
         model = build_model(verbose=verbose)
     else:
@@ -29,19 +27,11 @@ def mov_correlation(rebuild_model=False, verbose=False):
     X = df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'att']]
     xEPA_df = model.predict(X) 
     df['xEPA'] = xEPA_df.tolist()   
-    r2 = r2_score(df['MoV'], df['xEPA'])
-    rmse = np.sqrt(mean_squared_error(df['MoV'], df['xEPA']))
-    if verbose:
-        print("R squared: %f" % (r2))
-        print("RMSE: %f" % rmse)
-        plt.scatter(x=df['MoV'], y=df['xEPA'])
-        plt.ylabel('xEPA')
-        plt.xlabel('Margin of Victory')
-        plt.title(f"RMSE: {rmse} | R Squared: {r2}")
-        plt.show()
-    return 0    
-
+    
+    df.sort_values(by='xEPA', inplace=True, ascending=False)
+    top_scores = df.head(n)
+    return top_scores
 
 if __name__ == '__main__':
     pd.set_option('mode.chained_assignment', None)
-    mov_correlation(rebuild_model=False, verbose=True)
+    get_top_games(n=25, rebuild_model=True, verbose=True)

@@ -9,7 +9,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 import matplotlib.pyplot as plt
 
 
-## TODO - prove that pred EPA is more predictive of either next season or next games EPA than prev EPA
+## TODO - Add era to model
 def build_model(verbose=False, file_path='model.txt'):
     #nfl.cache_pbp([2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021], downcast=False)
     df = nfl.import_pbp_data([2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021], cache=True, downcast=False, columns=['passer_player_id', 'passer_player_name', 'season', 'game_id', 'pass', 'epa', 'qb_epa', 'wpa', 'cp', 'cpoe', 'complete_pass','air_yards', 'xyac_mean_yardage', 'receiver_player_name', 'pass_location'])
