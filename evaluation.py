@@ -26,7 +26,10 @@ def mov_correlation(rebuild_model=False, verbose=False):
     df = df[['passer_player_id', 'passer_player_name', 'season', 'game_id', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xYards', 'pass', 'posteam_score_post', 'defteam_score_post']].groupby(by=['passer_player_id', 'passer_player_name', 'season', 'game_id']).agg(epa=('epa', 'sum'), qb_epa=('qb_epa', 'sum'), wpa=('wpa', 'sum'), xCompletion=('xCompletion', 'sum'), xYards=('xYards', 'sum'), att=('pass', 'sum'), posteam_score=('posteam_score_post', 'max'), defteam_score=('defteam_score_post', 'max')).reset_index()
     df['MoV'] = df['posteam_score'] - df['defteam_score']   
     df['xCompPer'] = df['xCompletion'] / df['att']
-    X = df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'att']]
+    df['era1'] = df['season'].apply(lambda season: 1 if season <= 2013 else 0)
+    df['era2'] = df['season'].apply(lambda season: 1 if season >= 2014 and season <= 2017 else 0)
+    df['era3'] = df['season'].apply(lambda season: 1 if season >= 2018 else 0)
+    X = df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'pass', 'era1', 'era2', 'era3']]
     xEPA_df = model.predict(X) 
     df['xEPA'] = xEPA_df.tolist()   
     r2 = r2_score(df['MoV'], df['xEPA'])
@@ -44,4 +47,4 @@ def mov_correlation(rebuild_model=False, verbose=False):
 
 if __name__ == '__main__':
     pd.set_option('mode.chained_assignment', None)
-    mov_correlation(rebuild_model=False, verbose=True)
+    mov_correlation(rebuild_model=True, verbose=True)

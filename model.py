@@ -20,10 +20,12 @@ def build_model(verbose=False, file_path='model.txt'):
     df['xCompletion'] = df.apply(lambda row: 1 if row['complete_pass'] == 1 or row['cp'] > 0.5 else 0, axis=1)
     df['xYards'] = df.apply(lambda row: row['air_yards'] + row['xyac_mean_yardage'] if row['xCompletion'] == 1 else 0, axis=1)
     df = df[['passer_player_id', 'passer_player_name', 'season', 'game_id', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xYards', 'pass']].groupby(by=['passer_player_id', 'passer_player_name', 'season', 'game_id']).sum().reset_index()
-    
+    df['era1'] = df['season'].apply(lambda season: 1 if season <= 2013 else 0)
+    df['era2'] = df['season'].apply(lambda season: 1 if season >= 2014 and season <= 2017 else 0)
+    df['era3'] = df['season'].apply(lambda season: 1 if season >= 2018 else 0)
     y = df['qb_epa']
     df['xCompPer'] = df['xCompletion'] / df['pass']
-    X = df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'pass']]
+    X = df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'pass', 'era1', 'era2', 'era3']]
     data_dmatrix = xgb.DMatrix(data=X, label=y)
     
 
