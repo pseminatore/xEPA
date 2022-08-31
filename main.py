@@ -5,6 +5,7 @@ from os.path import exists
 import xgboost as xgb
 from model import *
 from evaluation import *
+from graphics import *
 
 def get_top_seasons(n=10, rebuild_model=False, verbose=False):
     if not exists('model.txt') or rebuild_model:
@@ -16,11 +17,11 @@ def get_top_seasons(n=10, rebuild_model=False, verbose=False):
     seasons = [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021]
     df = prepare_dataframe(seasons)
     df['MoV'] = df['posteam_score'] - df['defteam_score']   
-    X = df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'att', 'season']]
+    X = df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'att', 'season', 'touchdowns']]
     xEPA_df = model.predict(X) 
     df['xEPA'] = xEPA_df.tolist()   
     df['EPAOE'] = df['epa'] - df['xEPA']
-    df = df[['passer_player_id', 'passer_player_name', 'season', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xYards', 'att', 'xCompPer', 'xEPA', 'MoV', 'EPAOE']].groupby(by=['passer_player_id', 'passer_player_name', 'season']).sum().reset_index()
+    df = df[['passer_player_id', 'passer_player_name', 'season', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xYards', 'att', 'touchdowns', 'xCompPer', 'xEPA', 'MoV', 'EPAOE']].groupby(by=['passer_player_id', 'passer_player_name', 'season']).sum().reset_index()
     df.sort_values(by='xEPA', inplace=True, ascending=False)
     top_scores = df.head(n)
     return top_scores
@@ -35,15 +36,17 @@ def get_top_scores_by_season(seasons=[2021], n=10, rebuild_model=False, verbose=
         seasons = [seasons]
     df = prepare_dataframe(seasons)
     df['MoV'] = df['posteam_score'] - df['defteam_score']   
-    X = df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'att', 'season']]
+    X = df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'att', 'season', 'touchdowns']]
     xEPA_df = model.predict(X) 
     df['xEPA'] = xEPA_df.tolist()   
     df['EPAOE'] = df['epa'] - df['xEPA']
-    df = df[['passer_player_id', 'passer_player_name', 'season', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xYards', 'att', 'xCompPer', 'xEPA', 'MoV', 'EPAOE']].groupby(by=['passer_player_id', 'passer_player_name', 'season']).sum().reset_index()
+    df = df[['passer_player_id', 'passer_player_name', 'season', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xYards', 'att', 'touchdowns', 'xCompPer', 'xEPA', 'MoV', 'EPAOE']].groupby(by=['passer_player_id', 'passer_player_name', 'season']).sum().reset_index()
     df.sort_values(by='xEPA', inplace=True, ascending=False)
     top_scores = df.head(n)
     return top_scores
 
+def top_seasons():
+    pass
 
 if __name__ == '__main__':
     pd.set_option('mode.chained_assignment', None)

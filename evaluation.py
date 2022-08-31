@@ -16,10 +16,10 @@ def stats_by_year(rebuild_model=False, verbose=False):
     seasons = [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021]
     df = prepare_dataframe(seasons)
     df['MoV'] = df['posteam_score'] - df['defteam_score']   
-    X = df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'att', 'season']]
+    X = df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'att', 'season', 'touchdowns']]
     xEPA_df = model.predict(X) 
     df['xEPA'] = xEPA_df.tolist()   
-    df = df[['season', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xYards', 'att', 'xCompPer', 'xEPA', 'MoV']].groupby(by=['season']).agg(np.mean).reset_index()
+    df = df[['season', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xYards', 'att', 'touchdowns', 'xCompPer', 'xEPA', 'MoV']].groupby(by=['season']).agg(np.mean).reset_index()
     return df
     
 
@@ -33,11 +33,14 @@ def mov_correlation(rebuild_model=False, verbose=False):
         
     seasons = [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021]
     df = prepare_dataframe(seasons)
+    
+    ##TODO -- MoV values look ridiculous rn
     df['MoV'] = df['posteam_score'] - df['defteam_score']   
-    X = df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'att', 'era']]
+    df = df.query('att > 10')
+    X = df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'att', 'season', 'touchdowns']]
     xEPA_df = model.predict(X) 
     df['xEPA'] = xEPA_df.tolist()   
-    df = df[['passer_player_id', 'passer_player_name', 'season', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xYards', 'att', 'xCompPer', 'xEPA', 'MoV']].groupby(by=['passer_player_id', 'passer_player_name', 'season']).sum().reset_index()
+    df = df[['passer_player_id', 'passer_player_name', 'season', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xYards', 'att', 'touchdowns', 'xCompPer', 'xEPA', 'MoV']].groupby(by=['passer_player_id', 'passer_player_name', 'season']).sum().reset_index()
     r2 = r2_score(df['MoV'], df['xEPA'])
     rmse = np.sqrt(mean_squared_error(df['MoV'], df['xEPA']))
     if verbose:
