@@ -40,7 +40,7 @@ def mov_correlation(rebuild_model=False, verbose=False):
     X = df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'att', 'season', 'touchdowns']]
     xEPA_df = model.predict(X) 
     df['xEPA'] = xEPA_df.tolist()   
-    df = df[['passer_player_id', 'passer_player_name', 'season', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xYards', 'att', 'touchdowns', 'xCompPer', 'xEPA', 'MoV']].groupby(by=['passer_player_id', 'passer_player_name', 'season']).sum().reset_index()
+    #df = df[['passer_player_id', 'passer_player_name', 'season', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xYards', 'att', 'touchdowns', 'xCompPer', 'xEPA', 'MoV']].groupby(by=['passer_player_id', 'passer_player_name', 'season']).sum().reset_index()
     r2 = r2_score(df['MoV'], df['xEPA'])
     rmse = np.sqrt(mean_squared_error(df['MoV'], df['xEPA']))
     if verbose:
