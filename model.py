@@ -36,6 +36,7 @@ def tune_hyperparams(df):
     
 def prepare_dataframe(seasons):
     df = nfl.import_pbp_data(seasons, cache=True, downcast=False, columns=['passer_player_id', 'passer_player_name', 'season', 'game_id', 'pass', 'epa', 'qb_epa', 'wpa', 'cp', 'cpoe', 'complete_pass','air_yards', 'xyac_mean_yardage', 'receiver_player_name', 'pass_location', 'posteam_score_post', 'defteam_score_post', 'pass_touchdown'])
+    df['passer_player_name'] = df['passer_player_name'].apply(lambda name: 'A.Rodgers' if name == 'Aa.Rodgers' else name)
     df = df.query('`pass` == 1')
     df = df.dropna(subset=['passer_player_id', 'receiver_player_name', 'pass_location'])
     df[['cp', 'cpoe', 'air_yards', 'xyac_mean_yardage', 'pass_touchdown']] = df[['cp', 'cpoe', 'air_yards', 'xyac_mean_yardage', 'pass_touchdown']].fillna(0)
@@ -49,7 +50,6 @@ def prepare_dataframe(seasons):
     # df['era'] = df['season'].apply(lambda season: 1 if season >= 2018 else 0)
     return df
 
-## TODO - Add era to model
 def build_model(verbose=False, file_path='model.txt'):
     #nfl.cache_pbp([2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021], downcast=False)
     seasons = [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021]

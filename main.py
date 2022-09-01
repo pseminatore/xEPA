@@ -45,9 +45,22 @@ def get_top_scores_by_season(seasons=[2021], n=10, rebuild_model=False, verbose=
     top_scores = df.head(n)
     return top_scores
 
-def top_seasons():
-    pass
+def top_seasons(n=10):
+    leaderboard = get_top_seasons(n)
+    players = nfl.import_rosters(years=[2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021])
+    leaderboard = leaderboard.merge(right=players[['player_id', 'season', 'headshot_url']], how='left', left_on=['passer_player_id', 'season'], right_on=['player_id', 'season'])
+    build_top_seasons_leaderboard(leaderboard)
+    return leaderboard
+
+def top_scores_by_season(season=2021, week=17, n=32):
+    leaderboard = get_top_scores_by_season(season, n)
+    players = nfl.import_rosters(years=[season])
+    leaderboard = leaderboard.merge(right=players[['player_id', 'season', 'headshot_url']], how='left', left_on=['passer_player_id', 'season'], right_on=['player_id', 'season'])
+    build_top_scores_by_season_leaderboard(leaderboard, season, week)
+    return leaderboard
 
 if __name__ == '__main__':
     pd.set_option('mode.chained_assignment', None)
-    get_top_scores_by_season(seasons=[2021], n=30, rebuild_model=False, verbose=True)
+    #get_top_scores_by_season(seasons=[2021], n=30, rebuild_model=False, verbose=True)
+    top_scores_by_season(n=32)
+    
