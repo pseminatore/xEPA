@@ -35,15 +35,16 @@ def tune_hyperparams(df):
     print('best estimator: %s' % grid_search.best_estimator_)
     
 def prepare_dataframe(seasons):
-    df = nfl.import_pbp_data(seasons, cache=True, downcast=False, columns=['passer_player_id', 'passer_player_name', 'season', 'game_id', 'pass', 'epa', 'qb_epa', 'wpa', 'cp', 'cpoe', 'complete_pass','air_yards', 'xyac_mean_yardage', 'receiver_player_name', 'pass_location', 'posteam_score_post', 'defteam_score_post', 'pass_touchdown'])
-    df['passer_player_name'] = df['passer_player_name'].apply(lambda name: 'A.Rodgers' if name == 'Aa.Rodgers' else name)
+    df = nfl.import_pbp_data(seasons, cache=True, downcast=False, columns=['passer_player_id', 'passer_player_name', 'season', 'game_id', 'week', 'pass', 'epa', 'qb_epa', 'wpa', 'cp', 'cpoe', 'complete_pass','air_yards', 'xyac_mean_yardage', 'receiver_player_name', 'pass_location', 'posteam_score_post', 'defteam_score_post', 'pass_touchdown'])
     df = df.query('`pass` == 1')
+    df['passer_player_name'] = df['passer_player_name'].apply(lambda name: 'A.Rodgers' if name == 'Aa.Rodgers' else name)
+    df['passer_player_name'] = df['passer_player_name'].apply(lambda name: 'J.Alen' if name == 'Jo.Allen' else name)
     df = df.dropna(subset=['passer_player_id', 'receiver_player_name', 'pass_location'])
     df[['cp', 'cpoe', 'air_yards', 'xyac_mean_yardage', 'pass_touchdown']] = df[['cp', 'cpoe', 'air_yards', 'xyac_mean_yardage', 'pass_touchdown']].fillna(0)
     df = df.query('air_yards > -15 and air_yards < 75')
     df['xCompletion'] = df.apply(lambda row: 1 if row['complete_pass'] == 1 or row['cp'] > 0.5 else 0, axis=1)
     df['xYards'] = df.apply(lambda row: row['air_yards'] + row['xyac_mean_yardage'] if row['xCompletion'] == 1 else 0, axis=1)
-    df = df[['passer_player_id', 'passer_player_name', 'season', 'game_id', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xYards', 'pass', 'posteam_score_post', 'defteam_score_post', 'pass_touchdown']].groupby(by=['passer_player_id', 'passer_player_name', 'season', 'game_id']).agg(epa=('epa', 'sum'), qb_epa=('qb_epa', 'sum'), wpa=('wpa', 'sum'), xCompletion=('xCompletion', 'sum'), xYards=('xYards', 'sum'), att=('pass', 'sum'), posteam_score=('posteam_score_post', 'max'), defteam_score=('defteam_score_post', 'max'), touchdowns=('pass_touchdown', 'sum')).reset_index()
+    df = df[['passer_player_id', 'passer_player_name', 'season', 'game_id', 'week', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xYards', 'pass', 'posteam_score_post', 'defteam_score_post', 'pass_touchdown']].groupby(by=['passer_player_id', 'passer_player_name', 'season', 'game_id', 'week']).agg(epa=('epa', 'sum'), qb_epa=('qb_epa', 'sum'), wpa=('wpa', 'sum'), xCompletion=('xCompletion', 'sum'), xYards=('xYards', 'sum'), att=('pass', 'sum'), posteam_score=('posteam_score_post', 'max'), defteam_score=('defteam_score_post', 'max'), touchdowns=('pass_touchdown', 'sum')).reset_index()
     df['era'] = df['season'].apply(lambda season: 3 if season <= 2013 else (2 if season >= 2014 and season <= 2017 else (1 if season >= 2018 else 0)))
     df['xCompPer'] = df['xCompletion'] / df['att']
     # df['era'] = df['season'].apply(lambda season: 2 if season >= 2014 and season <= 2017 else 0)
@@ -51,7 +52,7 @@ def prepare_dataframe(seasons):
     return df
 
 def build_model(verbose=False, file_path='model.txt'):
-    #nfl.cache_pbp([2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021], downcast=False)
+    #nfl.cache_pbp([2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022], downcast=False)
     seasons = [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021]
     df = prepare_dataframe(seasons)
     

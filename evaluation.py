@@ -34,7 +34,6 @@ def mov_correlation(rebuild_model=False, verbose=False):
     seasons = [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021]
     df = prepare_dataframe(seasons)
     
-    ##TODO -- MoV values look ridiculous rn
     df['MoV'] = df['posteam_score'] - df['defteam_score']   
     df = df.query('att > 10')
     X = df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'att', 'season', 'touchdowns']]
@@ -51,6 +50,7 @@ def mov_correlation(rebuild_model=False, verbose=False):
         plt.xlabel('Margin of Victory')
         plt.title(f"RMSE: {rmse} | R Squared: {r2}")
         plt.show()
+    
     return 0    
 
 
