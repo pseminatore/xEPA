@@ -22,7 +22,7 @@ def build_scores_as_of_week(scores, season, week, min, save_show=False):
             os.mkdir(f"outputs/{season}")
         if not os.path.exists(f"outputs/{season}/{week}"):
             os.mkdir(f"outputs/{season}/{week}")
-        fig.write_image(f"outputs/{season}/{week}/season_leaderboard.png")
+        fig.write_image(f"outputs/{season}/{week}/week_by_week.png")
 
 
 def build_top_seasons_leaderboard(leaderboard, save_show=False):
@@ -97,3 +97,32 @@ def build_top_scores_by_season_leaderboard(leaderboard, season, week, min=10, sa
         if not os.path.exists(f"outputs/{season}/{week}"):
             os.mkdir(f"outputs/{season}/{week}")
         fig.write_image(f"outputs/{season}/{week}/season_leaderboard.png")
+        
+def build_top_scores_by_week_leaderboard(leaderboard, season, week, min=10, save_show=False):
+    fig = go.Figure()
+    leaderboard = leaderboard.reset_index(drop=True)
+    leaderboard = leaderboard.reset_index()
+    fig.add_trace(go.Table(
+        header=dict(values=['Rank', 'Player', 'xEPA'], height=56, font=dict(size=39)),
+        cells=dict(values=[leaderboard.index + 1, leaderboard.passer_player_name, round(leaderboard.xEPA,1)], height=55, font=dict(size=24))
+    ))
+    title = f"xEPA Rankings Week {week}, {season}"
+    footer = f"Min {min} Att. | Data from @nflfastr | Models,Graphic from @425k_football"
+    fig.add_annotation(xref="x domain",yref="paper",x=0.5, y=1.05, showarrow=False,
+                text=title, font=dict(size=42))
+    fig.add_annotation(xref="x domain",yref="paper",x=0.5, y=-0.025, showarrow=False,
+                text=footer, font=dict(size=18))
+    fig.update_layout(
+        width=1080,
+        height=2000,
+        template='ggplot2'
+    ) 
+
+    if save_show:
+        fig.show()
+    else:
+        if not os.path.exists(f"outputs/{season}"):
+            os.mkdir(f"outputs/{season}")
+        if not os.path.exists(f"outputs/{season}/{week}"):
+            os.mkdir(f"outputs/{season}/{week}")
+        fig.write_image(f"outputs/{season}/{week}/weekly_leaderboard.png")

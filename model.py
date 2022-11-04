@@ -35,37 +35,39 @@ def tune_hyperparams(df):
     print('best estimator: %s' % grid_search.best_estimator_)
     
 def prepare_dataframe(seasons):
-    df = nfl.import_pbp_data(seasons, cache=True, downcast=False, columns=['passer_player_id', 'passer_player_name', 'season', 'game_id', 'week', 'pass', 'epa', 'qb_epa', 'wpa', 'cp', 'cpoe', 'complete_pass','air_yards', 'xyac_mean_yardage', 'receiver_player_name', 'pass_location', 'posteam_score_post', 'defteam_score_post', 'pass_touchdown'])
+    df = nfl.import_pbp_data(seasons, cache=True, downcast=False, columns=['passer_player_id', 'passer_player_name', 'season', 'game_id', 'week', 'pass', 'epa', 'qb_epa', 'wpa', 'cp', 'cpoe', 'complete_pass','air_yards', 'xyac_mean_yardage', 'receiver_player_name', 'pass_location', 'posteam_score_post', 'defteam_score_post', 'pass_touchdown', 'interception'])
     df = df.query('`pass` == 1')
     df['passer_player_name'] = df['passer_player_name'].apply(lambda name: 'A.Rodgers' if name == 'Aa.Rodgers' else name)
-    df['passer_player_name'] = df['passer_player_name'].apply(lambda name: 'J.Alen' if name == 'Jo.Allen' else name)
+    df['passer_player_name'] = df['passer_player_name'].apply(lambda name: 'J.Allen' if name == 'Jo.Allen' else name)
     df = df.dropna(subset=['passer_player_id', 'receiver_player_name', 'pass_location'])
-    df[['cp', 'cpoe', 'air_yards', 'xyac_mean_yardage', 'pass_touchdown']] = df[['cp', 'cpoe', 'air_yards', 'xyac_mean_yardage', 'pass_touchdown']].fillna(0)
+    df[['cp', 'cpoe', 'air_yards', 'xyac_mean_yardage', 'pass_touchdown', 'interception']] = df[['cp', 'cpoe', 'air_yards', 'xyac_mean_yardage', 'pass_touchdown', 'interception']].fillna(0)
     df = df.query('air_yards > -15 and air_yards < 75')
     df['xCompletion'] = df.apply(lambda row: 1 if row['complete_pass'] == 1 or row['cp'] > 0.5 else 0, axis=1)
     df['xYards'] = df.apply(lambda row: row['air_yards'] + row['xyac_mean_yardage'] if row['xCompletion'] == 1 else 0, axis=1)
-    df = df[['passer_player_id', 'passer_player_name', 'season', 'game_id', 'week', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xYards', 'pass', 'posteam_score_post', 'defteam_score_post', 'pass_touchdown']].groupby(by=['passer_player_id', 'passer_player_name', 'season', 'game_id', 'week']).agg(epa=('epa', 'sum'), qb_epa=('qb_epa', 'sum'), wpa=('wpa', 'sum'), xCompletion=('xCompletion', 'sum'), xYards=('xYards', 'sum'), att=('pass', 'sum'), posteam_score=('posteam_score_post', 'max'), defteam_score=('defteam_score_post', 'max'), touchdowns=('pass_touchdown', 'sum')).reset_index()
+    df = df[['passer_player_id', 'passer_player_name', 'season', 'game_id', 'week', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xYards', 'pass', 'posteam_score_post', 'defteam_score_post', 'pass_touchdown', 'interception']].groupby(by=['passer_player_id', 'passer_player_name', 'season', 'game_id', 'week']).agg(epa=('epa', 'sum'), qb_epa=('qb_epa', 'sum'), wpa=('wpa', 'sum'), xCompletion=('xCompletion', 'sum'), xYards=('xYards', 'sum'), att=('pass', 'sum'), posteam_score=('posteam_score_post', 'max'), defteam_score=('defteam_score_post', 'max'), touchdowns=('pass_touchdown', 'sum'), interceptions=('interception', 'sum')).reset_index()
     df['era'] = df['season'].apply(lambda season: 3 if season <= 2013 else (2 if season >= 2014 and season <= 2017 else (1 if season >= 2018 else 0)))
     df['xCompPer'] = df['xCompletion'] / df['att']
     # df['era'] = df['season'].apply(lambda season: 2 if season >= 2014 and season <= 2017 else 0)
     # df['era'] = df['season'].apply(lambda season: 1 if season >= 2018 else 0)
     return df
 
+def update_cache():
+    nfl.cache_pbp([2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022], downcast=False)
+
 def build_model(verbose=False, file_path='model.txt'):
-    #nfl.cache_pbp([2006, 2007, 2008, 2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022], downcast=False)
     seasons = [2009, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021]
     df = prepare_dataframe(seasons)
     
     
     ## LOSO (Leave One Season Out) training.  Append predictions to resulting df
-    df = df[['passer_player_id', 'passer_player_name', 'season', 'game_id', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xCompPer', 'xYards', 'att', 'touchdowns']]
-    res_df = pd.DataFrame(columns=['passer_player_id', 'passer_player_name', 'season', 'game_id', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xCompPer', 'xYards', 'att', 'touchdowns', 'xEPA'])
+    df = df[['passer_player_id', 'passer_player_name', 'season', 'game_id', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xCompPer', 'xYards', 'att', 'touchdowns', 'interceptions']]
+    res_df = pd.DataFrame(columns=['passer_player_id', 'passer_player_name', 'season', 'game_id', 'epa', 'qb_epa', 'wpa', 'xCompletion', 'xCompPer', 'xYards', 'att', 'touchdowns', 'xEPA', 'interceptions'])
     for season in seasons:
         test_df = df.query('season == @season')
         train_df = df.query('season != @season')
-        X_train = train_df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'att', 'season', 'touchdowns']]
+        X_train = train_df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'att', 'season', 'touchdowns', 'interceptions']]
         y_train = train_df['epa']
-        X_test = test_df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'att', 'season', 'touchdowns']]
+        X_test = test_df[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'att', 'season', 'touchdowns', 'interceptions']]
         y_test = test_df['epa']
         xg_reg = xgb.XGBRegressor(objective='reg:squarederror', base_score=0.5, booster='gbtree', colsample_bylevel=1,
                 colsample_bynode=1, colsample_bytree=1, enable_categorical=False,
@@ -106,18 +108,6 @@ def build_model(verbose=False, file_path='model.txt'):
     # rmse = (cv_results["test-rmse-mean"]).tail(1).values.tolist()[0]
     xg_reg.save_model(file_path)
     return xg_reg
-    
-    
-    ### TODO -- Sum these by season and compare to next
-    #df = df.groupby(by=['passer_player_id', 'passer_player_name', 'season']).agg(wpa=('wpa', 'sum'), xCompPer=('xCompPer', np.mean), xCompletion=('xCompletion', 'sum'), xYards=('xYards', 'sum'), passes=('pass', 'sum'), qb_epa=)
-    # prev_act_y = df.query('season == 2020')['qb_epa']
-    # next_act_y = df.query('season == 2021')['qb_epa']
-    # prev_act_x = df.query('season == 2020')[['passer_player_id', 'passer_player_name', 'wpa', 'xCompPer', 'xCompletion', 'xYards', 'pass', 'qb_epa']]
-    # next_act_x = df.query('season == 2021')[['passer_player_id', 'passer_player_name', 'wpa', 'xCompPer', 'xCompletion', 'xYards', 'pass']]
-    # next_pred_y = xg_reg.predict(prev_act_x[['wpa', 'xCompPer', 'xCompletion', 'xYards', 'pass']])
-    # prev_act_x['pred_qb_epa'] = next_pred_y
-    # next_act_x['act_qb_epa'] = next_act_y
-    # res_df = next_act_x.merge(prev_act_x[['passer_player_id', 'qb_epa', 'pred_qb_epa']], how='left', left_on='passer_player_id', right_on='passer_player_id')
     
     
     
