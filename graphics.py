@@ -37,7 +37,7 @@ def build_top_seasons_leaderboard(leaderboard, save_show=False):
     fig.add_annotation(xref="x domain",yref="paper",x=0.5, y=1.05, showarrow=False,
                 text=title, font=dict(size=42))
     fig.add_annotation(xref="x domain",yref="paper",x=0.5, y=-0.025, showarrow=False,
-                text='2009-2022 | Data from @nflfastr | Models,Graphic from @425k_football', font=dict(size=18))
+                text='2009-2022 | Data from @nflfastr', font=dict(size=18))
     fig.update_layout(
         width=864,
         height=1600,
@@ -68,7 +68,7 @@ def build_top_scores_by_season_leaderboard(leaderboard, season, week, min=10, sa
         cells=dict(values=[leaderboard.index + 1, leaderboard.passer_player_name, round(leaderboard.xEPA,1)], height=55, font=dict(size=24))
     ))
     title = f"xEPA Rankings Through Week {week}, {season}"
-    footer = f"Min {min} Att. | Data from @nflfastr | Models,Graphic from @425k_football"
+    footer = f"Min {min} Att. | Data from @nflfastr"
     fig.add_annotation(xref="x domain",yref="paper",x=0.5, y=1.05, showarrow=False,
                 text=title, font=dict(size=42))
     fig.add_annotation(xref="x domain",yref="paper",x=0.5, y=-0.025, showarrow=False,
@@ -107,7 +107,7 @@ def build_top_scores_by_week_leaderboard(leaderboard, season, week, min=10, save
         cells=dict(values=[leaderboard.index + 1, leaderboard.passer_player_name, round(leaderboard.xEPA,1)], height=55, font=dict(size=24))
     ))
     title = f"xEPA Rankings Week {week}, {season}"
-    footer = f"Min {min} Att. | Data from @nflfastr | Models,Graphic from @425k_football"
+    footer = f"Min {min} Att. | Data from @nflfastr"
     fig.add_annotation(xref="x domain",yref="paper",x=0.5, y=1.05, showarrow=False,
                 text=title, font=dict(size=42))
     fig.add_annotation(xref="x domain",yref="paper",x=0.5, y=-0.025, showarrow=False,
